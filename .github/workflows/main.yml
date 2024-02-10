@@ -1,61 +1,59 @@
 name: CI
 
-on: [push]
+on:
+  push:  # Trigger the workflow on push events to any branch
 
+# Define the jobs to be executed in the workflow
 jobs:
- sast_scan:
-   name: Run Bandit Scan
-   runs-on: ubuntu-latest
 
-   steps:
-   - name: Checkout code
-     uses: actions/checkout@v2
+  # Job to run Bandit security scan
+  sast_scan:
+    name: Run Bandit Scan  
+    runs-on: ubuntu-latest  # Operating system for the job
 
-   - name: Set up Python
-     uses: actions/setup-python@v2
-     with:
-       python-version: 3.8
+    steps:
+      - name: Checkout code  # Checkout the repository code
+        uses: actions/checkout@v2
 
-   - name: Install Bandit
-     run: pip install bandit
+      - name: Set up Python  # Set up Python environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
 
-   - name: Run Bandit Scan
-     run: bandit -ll -ii -r . -f json -o bandit-report.json
+      - name: Install Bandit 
+        run: pip install bandit
 
-   - name: Upload Artifact
-     uses: actions/upload-artifact@v3
-     if: always()
-     with:
-      name: bandit-findings
-      path: bandit-report.json
+      - name: Run Bandit Scan  # Run Bandit security scan on the codebase
+        run: bandit -ll -ii -r . -f json -o bandit-report.json
 
- image_scan:
-   name: Build Image and Run Image Scan
-   runs-on: ubuntu-latest
+      - name: Upload Artifact  # Upload Bandit scan report as artifact
+        uses: actions/upload-artifact@v3
+        if: always()  # Always run this step, even if previous steps fail
+        with:
+          name: bandit-findings  # Name of the artifact
+          path: bandit-report.json  # Path to the Bandit scan report
 
-   steps:
-   - name: Checkout code
-     uses: actions/checkout@v2
+  # Job to build Docker image and perform image scan
+  image_scan:
+    name: Build Image and Run Image Scan 
+    runs-on: ubuntu-latest  
 
-   - name: Set up Docker
-     uses: docker-practice/actions-setup-docker@v1
-     with:
-      docker_version: '20.10.7'
+    steps:
+      - name: Checkout code  
+        uses: actions/checkout@v2
 
-   - name: Build Docker Image
-     run: docker build -f Dockerfile -t myapp:latest .
+      - name: Set up Docker  # Set up Docker environment
+        uses: docker-practice/actions-setup-docker@v1
+        with:
+          docker_version: '20.10.7'  # Docker version to use
 
-   - name: Docker Scout Scan
-     run: |
-        curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
-        sh install-scout.sh
-        echo ${{ secrets.REPO_PWD }} | docker login -u ${{ secrets.REPO_USER }} --password-stdin
-        docker scout quickview
-        docker scout cves
+      - name: Build Docker Image  # Build Docker image for the application
+        run: docker build -f Dockerfile -t myapp:latest .
 
-
-
-
-   
-
-   
+      - name: Docker Scout Scan  # Run Docker Scout scan to check for vulnerabilities
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
+          sh install-scout.sh
+          echo ${{ secrets.REPO_PWD }} | docker login -u ${{ secrets.REPO_USER }} --password-stdin
+          docker scout quickview
+          docker scout cves
