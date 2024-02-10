@@ -52,30 +52,6 @@ jobs:
         echo ${{ secrets.REPO_PWD }} | docker login -u ${{ secrets.REPO_USER }} --password-stdin
         docker scout quickview
         docker scout cves
- deploy_to_minikube:
-    name: Deploy to Minikube
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Start Minikube
-      run: minikube start --wait=false
-
-    - name: Set up kubectl
-      uses: azure/setup-kubectl@v1
-      with:
-        kubeconfig: ~/.kube/config  # Use Minikube's kubeconfig
-
-    - name: Deploy PyGoat application
-      run: |
-        kubectl apply -f K8S-files/postgres-config.yaml
-        kubectl apply -f K8S-files/postgres-secret.yaml
-        kubectl apply -f K8S-files/postgres.yaml
-        kubectl apply -f K8S-files/postgres-service.yaml
-        kubectl apply -f K8S-files/pythonapp.yaml
-        kubectl apply -f K8S-files/pythonapp-service.yaml
 
 
 
