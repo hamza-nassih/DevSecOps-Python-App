@@ -45,29 +45,37 @@ jobs:
    - name: Build Docker Image
      run: docker build -f Dockerfile -t myapp:latest .
 
-   # - name: Docker Scout Scan
-     # run: |
-       # curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
-       # sh install-scout.sh
-       # echo ${{ secrets.REPO_PWD }} | docker login -u ${{ secrets.REPO_USER }} --password-stdin
-       # docker scout quickview
-       # docker scout cves
-
    - name: Docker Scout Scan
-     uses: docker/scout-action@v1.0.9
-     with:
-       dockerhub-user: ${{ secrets.REPO_USER }}
-       dockerhub-password: ${{ secrets.REPO_PWD }}
-       command: quickview,cves
-       only-severities: critical,high
-       sarif-file: scout-report.sarif
+      run: |
+        curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
+        sh install-scout.sh
+        echo ${{ secrets.REPO_PWD }} | docker login -u ${{ secrets.REPO_USER }} --password-stdin
+        docker scout quickview
+        docker scout cves
+  deploy_to_minikube:
+    name: Deploy to Minikube
+    runs-on: ubuntu-latest
 
-   - name: Upload Artifact
-     uses: actions/upload-artifact@v3
-     if: always()
-     with:
-       name: docker-scout-findings
-       path: scout-report.sarif
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Start Minikube
+      run: minikube start --wait=false
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v1
+      with:
+        kubeconfig: ~/.kube/config  # Use Minikube's kubeconfig
+
+    - name: Deploy PyGoat application
+      run: |
+        kubectl apply -f K8S-files/postgres-config.yaml
+        kubectl apply -f K8S-files/postgres-secret.yaml
+        kubectl apply -f K8S-files/postgres.yaml
+        kubectl apply -f K8S-files/postgres-service.yaml
+        kubectl apply -f K8S-files/pythonapp.yaml
+        kubectl apply -f K8S-files/pythonapp-service.yaml
 
 
 
