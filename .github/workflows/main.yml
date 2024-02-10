@@ -75,7 +75,7 @@ jobs:
 
     - name: Deploy PyGoat application
       run: |
-        kubectl apply -f path/to/postgres-config.yaml
-        kubectl apply -f path/to/postgres-secret.yaml
-        kubectl apply -f path/to/postgres.yaml
-        kubectl apply -f path/to/pythonapp.yaml
+        kubectl apply -f K8S-files/postgres-config.yaml
+        kubectl apply -f K8S-files/postgres-secret.yaml
+        kubectl apply -f K8S-files/postgres.yaml
+        kubectl apply -f K8S-files/pythonapp.yaml
