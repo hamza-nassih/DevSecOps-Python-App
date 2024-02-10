@@ -50,7 +50,7 @@ jobs:
       - name: Build Docker Image  # Build Docker image for the application
         run: docker build -f Dockerfile -t myapp:latest .
 
-      - name: Docker Scout Scan  # Run Docker Scout scan to check for vulnerabilities
+      - name: Docker Scout Scan 
         run: |
           curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
           sh install-scout.sh
